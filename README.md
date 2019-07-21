@@ -194,6 +194,8 @@ join imc_level d on d.level_id=a.level_id
 select * from vm_course;
 ```
 - ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/35.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/36.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/37.png)
 ```sql
 update imc_user set user_status=0 where user_nick='沙占';
 select user_nick,user_status from imc_user where user_nick='沙占';
@@ -219,8 +221,150 @@ set a.`content_score`=b.avg_content,
   ,a.`score`=b.avg_score
 
 
-```
+ select CURDATE(),CURTIME(),NOW();
+ select DATE_FORMAT(NOW(),'%Y%m%d %H-%i-%s')
+ select SEC_TO_TIME(60),TIME_TO_SEC('1:00:00');
 
+ #计算每门课程，上线时间距当前时间的天数
+ select title,DATEDIFF(NOW(),online_time)
+ from imc_course order by 2 DESC;
+
+```
+### 常用的字符串函数
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/38.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/39.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/40.png)
+```sql
+# 出于seo优化的目的，我们需要合并显示课程分类名称和课程标题
+-- select concat(class_name,title)
+select concat_ws('||',class_name,title)
+from imc_course a join imc_class b on b.class_id=a.class_id;
+
+# 123,456.7890
+select class_name,length(class_name),char_length(class_name) from imc_class;
+select format(123456.789,4)
+#www,com
+select left('www.baidu.com',3),right('www.baidu.com',3);
+select substring('www.baidu.com',5) #baidu.com
+#0.100
+select substring_index('192.168.0.100','.',-2)
+## 截取课程标题里中横线之前的部分
+select title,
+locate('-',title),
+substring(title,1,locate('-',title)),
+substring(title,1,locate('-',title)-1),
+substring_index(title,'-',1)
+from imc_course;
+
+#baidu
+select trim('  baidu  '),trim('x' from 'xxxxxxxbaiduxxxx');
+
+#显示每个用户的昵称和性别
+select user_nick
+  ,case when sex=1 then '男'
+  when sex=0 then '女'
+  else '未知'
+  end as '性别' from imc_user
+  where 
+  case when sex=1 then '男'
+  when sex=0 then '女'
+  else '未知'
+  end='男';
+```
+### SQL高级特性(>=8.0)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/40.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/41.png)
+```sql
+with cte as(
+  select title,study_cnt,class_id
+  from imc_course
+  where study_cnt>2000
+)
+select * from cte
+union all select * from cte order by title;
+
+# CTE递归生成序列  recursive(允许自引用)
+with recursive test as (
+  select 1 as n
+  union all select 1+n from test where n<10
+)
+select * from test;
+
+# 递归查询课程评论信息
+with recursive replay(quest_id,quest_title,user_id,replyid,path)
+as
+(
+  select quest_id,quest_title,user_id,replyid,cast(quest_id as char(200)) as path
+  from imc_question where course_id=59 and replyid=0
+  union all
+  select a.quest_id,a.quest_title,a.user_id,a.replyid,CONCAT(b.path,'>>',a.quest_id)
+  from imc_question a 
+  join replay b on a.replyid=b.quest_id
+)
+select * from replay;
+
+```
+### 窗口函数
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/41.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/42.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/43.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/master/img/44.png)
+
+```sql
+# row_number,rank,dense_rank 之间的区别
+with test(study_name,class_name,score) as (
+  select 'sqlercn','MySQL',95
+  union all
+  select 'tom','MySQL',99
+  union all
+  select 'Jerry','MySQL',99
+  union all
+  select 'Gavin','MySQL',98
+  union all
+  select 'sqlercn','PostGreSQL',99
+  union all
+  select 'tom','PostGreSQL',99
+  union all
+  select 'Jerry','PostGreSQL',98
+)
+select study_name,class_name,score
+  ,row_number() over(partition by class_name order by score desc) as rw
+  ,rank() over(partition by class_name order by score desc) as rk
+  ,dense_rank() over(partition by class_name order by score desc) as drk
+from test 
+order by class_name,rw;
+
+# 按学习人数对课程进行排名，并
+# 列出每类课程学习人数排名前三的课程名称，
+# 学习人数以及名次。
+with tmp as (
+  select class_name,title,score
+  ,rank() over(partition by class_name order by score desc) as cnt
+  from imc_course a
+  join imc_class b on b.`class_id`=a.`class_id`
+)
+select * from tmp where cnt<=3;
+
+# 每门课程的学习人数占本类课程总学习人数的百分比
+with tmp as (
+  select class_name,title,study_cnt
+    ,SUM(study_cnt) over(partition by class_name) as class_total
+  from imc_course a 
+  join imc_class b on b.`class_id`=a.`class_id`
+)
+select class_name,title,CONCAT(study_cnt/class_total*100,'%') 
+from tmp order by class_name;
+
+# 查询出分类ID为5的课程名称和分类名称
+select a.`class_name`,b.`title`,a.`class_id`
+from imc_class a 
+join imc_course b 
+on b.`class_id`=a.`class_id` where a.`class_id`=5;
+# 执行SQL中易犯的错误
+select * 
+from imc_course
+where title in (select imc_class.title from imc_class)
+```
 
 
 
