@@ -2,13 +2,13 @@
 ### 事务
 数据库基本原理
 https://blog.csdn.net/AllenWells/article/details/47419797
-- ![sql](https://github.com/mini-docker/mini-sql/blob/handing_high_concurrency/img/high_concurrency/1.png)
-- ![sql](https://github.com/mini-docker/mini-sql/blob/handing_high_concurrency/img/high_concurrency/2.png)
-- ![sql](https://github.com/mini-docker/mini-sql/blob/handing_high_concurrency/img/high_concurrency/3.png)
-- ![sql](https://github.com/mini-docker/mini-sql/blob/handing_high_concurrency/img/high_concurrency/4.png)
-- ![sql](https://github.com/mini-docker/mini-sql/blob/handing_high_concurrency/img/high_concurrency/5.png)
-- ![sql](https://github.com/mini-docker/mini-sql/blob/handing_high_concurrency/img/high_concurrency/6.png)
-- ![sql](https://github.com/mini-docker/mini-sql/blob/handing_high_concurrency/img/high_concurrency/7.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/handling_high_concurrency/img/high_%20concurrency/1.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/handling_high_concurrency/img/high_%20concurrency/2.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/handling_high_concurrency/img/high_%20concurrency/3.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/handling_high_concurrency/img/high_%20concurrency/4.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/handling_high_concurrency/img/high_%20concurrency/5.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/handling_high_concurrency/img/high_%20concurrency/6.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/handling_high_concurrency/img/high_%20concurrency/7.png)
 
 ### serializable 级别两个事务并发的情况
 ```sql
@@ -56,7 +56,7 @@ set session transaction isolation level read uncommitted;
 show variables like '%iso%'
 ...
 ```
-- ![sql](https://github.com/mini-docker/mini-sql/blob/handing_high_concurrency/img/high_concurrency/8.png)
+- ![sql](https://github.com/mini-docker/mini-sql/blob/handling_high_concurrency/img/high_%20concurrency/8.png)
 
 ### 阻塞和死锁
 ```sql
